@@ -20,6 +20,34 @@ def one_liner(code):
         return formatted_code[1:]
     return formatted_code
 
+
+def import_renamer(code):
+    imports_middle_last = re.findall(r"\n(?:from .+ )?import (.*,\s?)*([^\s]+)(.*,\s?)*\s*", code)
+
+    name_generator = VariableNameGenerator()
+    for i in range(len(imports_middle_last)):
+        old_prefix = imports_middle_last[i][0]
+        old_name = imports_middle_last[i][1]
+        old_suffix = imports_middle_last[i][2]
+        obfuscated_name = name_generator.get_random(i + 1)
+        code = re.sub(
+            r"(?<=[^.])(\b{}\b)".format(old_name), obfuscated_name, code
+        )
+        code = re.sub(rf"import {old_prefix}{obfuscated_name}{old_suffix}", f"import {old_prefix}{old_name} as {obfuscated_name}{old_suffix}", code)
+
+    imports_first = re.findall(r"\n(?:from .+ )?import (?:.*,\s?)*([^\s]+),", code)
+    name_generator = VariableNameGenerator()
+    for i in range(len(imports_first)):
+        old_name = imports_first[i]
+        obfuscated_name = name_generator.get_random(i + 1)
+        code = re.sub(
+            r"(?<=[^.])(\b{}\b)".format(old_name), obfuscated_name, code
+        )
+        code = re.sub(rf"import {obfuscated_name}", f"import {old_name} as {obfuscated_name}", code)
+
+    return code
+
+
 def variable_renamer(code):
     # add \n so regex picks it up
     code = "\n" + code
@@ -84,4 +112,4 @@ def obfuscate(code, remove_techniques=[]):
     return code
 
 
-all_methods = [variable_renamer, add_random_variables, one_liner]
+all_methods = [variable_renamer, add_random_variables, one_liner, import_renamer]
