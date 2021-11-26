@@ -23,7 +23,7 @@ def one_liner(code):
 def variable_renamer(code):
     # add \n so regex picks it up
     code = "\n" + code
-    variable_names = re.findall(r"(\w+)(?=( |)=( |))", code)
+    variable_names = re.findall(r"(?:^\s+|[;:]\s?)(\w+)(?=( |)=( |))", code)
     name_generator = VariableNameGenerator()
     for i in range(len(variable_names)):
         obfuscated_name = name_generator.get_random(i + 1)
